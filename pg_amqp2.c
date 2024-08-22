@@ -178,7 +178,7 @@ local_amqp2_get_bs(int broker_id)
 
 	snprintf(sql, sizeof(sql),
 		"SELECT host, port, vhost, username, password "
-		"  FROM amqp.broker "
+		"  FROM amqp2.broker "
 		" WHERE broker_id = %d "
 		" ORDER BY host DESC, port", broker_id
 	);
@@ -285,7 +285,7 @@ local_amqp2_get_bs(int broker_id)
 
 	busted:
 	if ( tries > 0 ) {
-		elog(WARNING, "amqp[%s] failed on trying next host", host_copy);
+		elog(WARNING, "amqp[%s] failed on host", host_copy);
 		goto retry;
 	}
 
@@ -305,7 +305,7 @@ pg_amqp2_publish_opt(PG_FUNCTION_ARGS, int channel) {
 	
 		int once_more = 1;
 		broker_id = PG_GETARG_INT32(0);
-  redo:
+	redo:
 		bs = local_amqp2_get_bs(broker_id);
 		if ( bs && bs->conn && (channel == 1 || ! bs->inerror) ) {
 			int rv;

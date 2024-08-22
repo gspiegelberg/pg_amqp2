@@ -1,31 +1,53 @@
-EXTENSION    = amqp
-EXTVERSION   = $(shell grep default_version $(EXTENSION).control | \
-               sed -e "s/default_version[[:space:]]*=[[:space:]]*'\([^']*\)'/\1/")
+EXTENSION    = amqp2
+EXTVERSION   = 0.1.0
+TARGET       = pg_amqp2.so
+
+local_cflags = -g -I/usr/local/include/rabbitmq-c
+local_libs   = -L/usr/local/lib64 -lrabbitmq
+
+CC = gcc
+
 PG_CONFIG    = pg_config
-PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
+#PGXS := $(shell $(PG_CONFIG) --pgxs)
+#include $(PGXS)
+CFLAGS       = $(shell $(PG_CONFIG) --cflags)
+LIBS         = $(shell $(PG_CONFIG) --libs)
+INCLUDEDIR   = $(shell $(PG_CONFIG) --includedir)
+LIBDIR       = $(shell $(PG_CONFIG) --libdir)
 
-ifeq ($(PG91),yes)
-DOCS         = $(wildcard doc/*.*)
-#TESTS        = $(wildcard test/sql/*.sql)
-#REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
-#REGRESS_OPTS = --inputdir=test
-MODULE_big   = $(patsubst src/%.c,%,$(wildcard src/*.c))
-OBJS         = src/pg_amqp.o \
-	src/librabbitmq/amqp_api.o src/librabbitmq/amqp_connection.o src/librabbitmq/amqp_debug.o \
-	src/librabbitmq/amqp_framing.o src/librabbitmq/amqp_mem.o src/librabbitmq/amqp_socket.o \
-	src/librabbitmq/amqp_table.o
+SRCS         = pg_amqp2.c
+OBJS         = pg_amqp2.o
+
+FLAGS        = -shared
+CFLAGS      += $(local_cflags)
+LIBS        += $(local_libs)
+LDFLAGS     += -shared
+
+pg_includes = -I$(INCLUDEDIR) -I$(INCLUDEDIR)/postgresql/server
+
+#PGXS := $(shell $(PG_CONFIG) --pgxs)
+#include $(PGXS)
 
 
-all: sql/$(EXTENSION)--$(EXTVERSION).sql
+all: objs sql/$(EXTENSION)--$(EXTVERSION).sql
+
+objs:
+	$(info    CFLAGS is $(CFLAGS))
+	$(info    LIBS is $(LIBS))
+	$(info    pg_includes is $(pg_includes))
+	$(info    )
+	$(CC) $(FLAGS) $(CFLAGS) $(pg_includes) $(DEBUGFLAGS) -o $(TARGET) $(SRCS) -L $(LIBDIR) $(LIBS)
 
 sql/$(EXTENSION)--$(EXTVERSION).sql: sql/tables/*.sql sql/functions/*.sql
 	cat $^ > $@
 
-DATA = $(wildcard updates/*--*.sql) sql/$(EXTENSION)--$(EXTVERSION).sql
-EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql
-else
-$(error Minimum version of PostgreSQL required is 9.1.0)
-endif
 
-PGXS := $(shell $(PG_CONFIG) --pgxs)
-include $(PGXS)
+install:
+	install pg_amqp2.so /usr/local/cbdb/lib/postgresql/pg_amqp2.so
+	install amqp2.control /usr/local/cbdb/share/postgresql/extension/amqp2.control
+	install sql/amqp2--0.1.0.sql /usr/local/cbdb/share/postgresql/extension/amqp2--0.1.0.sql
+	install doc/amqp2.md /usr/local/cbdb/share/doc/postgresql/extension/amqp2.md
+
+
+clean:
+	rm -f $(OBJS) $(TARGET)

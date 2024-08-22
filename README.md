@@ -1,23 +1,37 @@
-pg_amqp
+pg_amqp2
 =============
 
-The pg_amqp package provides the ability for postgres statements to directly
+The pg_amqp2 package provides the ability for postgres statements to directly
 publish messages to an [AMQP](http://www.amqp.org/) broker.
 
-All bug reports, feature requests and general questions can be directed to the Issues section on Github. - http://github.com/omniti-labs/pg_amqp
+All bug reports, feature requests and general questions can be directed to
+Issues section on Github.
+
+
+History
+--------
+Project cloned and overhauled from http://github.com/omniti-labs/pg_amqp.
+Kudo's to that team.
+
+Major reason for overhaul and not direct clone as previous was built around
+an antiquated and built in librabbitmq of version unknown circa 2014.
+
+Intention of this project is to reboot effort to support AMQP in current
+versions of PostgreSQL, Greenplum/gpdb and CloudberryDB/cbdb, removal of
+internal librabbitmq, bring up to date with current librabbitmq, general
+code clean up, and make enterprise ready.
 
 
 Building
 --------
 
-To build pg_amqp, just do this:
+Requires
+ * librabbitmq 0.14.0
+
+To build pg_amqp2:
 
     make
     make install
-
-If you encounter an error such as:
-
-    "Makefile", line 8: Need an operator
 
 You need to use GNU make, which may well be installed on your system as
 `gmake`:
@@ -34,63 +48,47 @@ package management system such as RPM to install PostgreSQL, be sure that the
 `-devel` package is also installed. If necessary tell the build process where
 to find it:
 
+PostgreSQL:
     env PG_CONFIG=/path/to/pg_config make && make install
 
-Some prepackaged Mac installs of postgres might need a little coaxing with
-modern XCodes.  If you encounter an error such as:
+CloudberryDB & Greenplum assuming build directory NFS mounted everywhere:
+    gpssh -f ALLHOSTS
+    => cd /path/to/build/dir
+    => env PG_CONFIG-/path/to/install/bin/pg_config
+    => make install
 
-    make: /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.8.xctoolchain/usr/bin/cc: No such file or directory
-
-Then you'll need to link the toolchain
-
-    sudo ln -s /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.8.xctoolchain
-
-And if you encounter an error about a missing `/usr/bin/postgres`:
-
-    ld: file not found: /usr/bin/postgres
-
-You might need to link in your real postgres:
-
-    sudo ln -s /usr/bin/postgres_real /usr/bin/postgres
 
 Loading
 -------
 
-Once amqp is installed, you can add it to a database. Add this line to your
+Once amqp2 is installed, you can add it to a database. Add this line to your
 postgresql config
 
-    shared_preload_libraries = 'pg_amqp.so'
+    shared_preload_libraries = 'pg_amqp2.so'
 
-This extension requires PostgreSQL 9.1.0 or greater, so loading amqp is as simple
-as connecting to a database as a super user and running 
+This extension requires
+ * CloudberryDB 1.5.4
+ * Greenplum 7.0.0 (via archive github gpdb)
+ * PostgreSQL >= 9.1.0 (untested)
 
-    CREATE EXTENSION amqp;
+Loading amqp2, connect to a database as a super user and run: 
 
-If you've upgraded your cluster to PostgreSQL 9.1 and already had amqp
-installed, you can upgrade it to a properly packaged extension with:
+    CREATE EXTENSION amqp2;
 
-    CREATE EXTENSION amqp FROM unpackaged;
-
-This is required to update to any versions >= 0.4.0.
-
-To update to the latest version, run the following command after running "make install" again:
-
-    ALTER EXTENSION amqp UPDATE;
 
 Basic Usage
 -----------
 
-Insert AMQP broker information (host/port/user/pass) into the
-`amqp.broker` table.
+Insert AMQP broker information (host/port/user/pass) into `amqp2.broker` table.
 
-A process starts and connects to PostgreSQL and runs:
+A process starts and connects to the database and executes:
 
-    SELECT amqp.publish(broker_id, 'amqp.direct', 'foo', 'message');
+    SELECT amqp2.publish(broker_id, 'amqp.direct', 'foo', 'message');
 
 Upon process termination, all broker connections will be torn down.
 If there is a need to disconnect from a specific broker, one can call:
 
-    select amqp.disconnect(broker_id);
+    select amqp2.disconnect(broker_id);
 
 which will disconnect from the broker if it is connected and do nothing
 if it is already disconnected.
