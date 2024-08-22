@@ -1,0 +1,10 @@
+Wishlist
+--------
+
+Add SSL connection support
+Add is_alive() to test if connection is still available
+Is there a use case for publishing from all segments?
+Add consume()
+Add reject message capability to consume
+
+

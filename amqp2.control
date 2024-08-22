@@ -1,0 +1,6 @@
+# amqp2 extension
+comment = 'AMQP support for PostgreSQL, Greenplum, and CloudberryDB'
+default_version = '0.1.0'
+module_pathname = '$libdir/pg_amqp2'
+relocatable = false
+schema = amqp2

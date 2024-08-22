@@ -1,14 +1,14 @@
-pg_amqp
+pg_rabbitmq
 ==========
 
 Usage
 -----
 Insert AMQP broker information (host/port/user/pass) into the
-`amqp.broker` table.
+`rabbitmq.broker` table.
 
 A process starts and connects to PostgreSQL and runs:
 
-    SELECT amqp.publish(broker_id, 'amqp.direct', 'foo', 'message', 1, 
+    SELECT rabbitmq.publish(broker_id, 'rabbitmq.direct', 'foo', 'message', 1, 
 			'application/json', 'some_reply_to', 'correlation_id');
 
 The last four parameters are optional and define the message properties. The parameters
@@ -18,12 +18,12 @@ reply_to and correlation_id.
 Given that message parameters are optional, the function can be called without any of those in
 which case no message properties are sent, as in:
 
-    SELECT amqp.publish(broker_id, 'amqp.direct', 'foo', 'message');
+    SELECT rabbitmq.publish(broker_id, 'rabbitmq.direct', 'foo', 'message');
 
 Upon process termination, all broker connections will be torn down.
 If there is a need to disconnect from a specific broker, one can call:
 
-    select amqp.disconnect(broker_id);
+    select rabbitmq.disconnect(broker_id);
 
 which will disconnect from the broker if it is connected and do nothing
 if it is already disconnected.
@@ -32,9 +32,9 @@ Support
 -------
 
 This library is stored in an open [GitHub
-repository](http://github.com/omniti-labs/pg_amqp). Feel free to fork and
+repository](http://github.com/omniti-labs/pg_rabbitmq). Feel free to fork and
 contribute! Please file bug reports via [GitHub
-Issues](http://github.com/omniti-labs/pg_amqp/issues/).
+Issues](http://github.com/omniti-labs/pg_rabbitmq/issues/).
 
 Authors
 ------
